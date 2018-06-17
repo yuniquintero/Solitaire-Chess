@@ -1,0 +1,514 @@
+import pygame, sys
+from pygame.locals import *
+
+# colors
+CHIFFON = (255, 250, 205)
+BROWN = (139, 69, 19)
+GRAY = (190, 190, 190)
+RED = (255, 0, 0)
+BLACK = (0, 0, 0)
+VEN = (50, 0 , 0) #vinotino (?)
+WHITE = (255, 255, 255)
+TAN = (210, 180, 140)
+
+#constant strings
+MAIN = "Menu Principal"
+INGAME = "Menu de Juego"
+START = "Pantalla de Inicio"
+OPTION = "Menu de opcion de carga"
+NEW = "Partida Nueva"
+LOAD = "Cargar Partida"
+
+#bounds
+Wth = 600 #width
+Hht = 650 #height
+lowMenu = (0, 440, 600, 160)
+leftMenu = (0, 0, 160, 440)
+frame = (160, 0, 440, 440)
+board = (180, 20, 400, 400)
+boxSize = 100
+
+FPS = 120
+fpsClock = pygame.time.Clock()
+
+assert lowMenu[0]+lowMenu[2] == 600 and lowMenu[1] + lowMenu[3] == 600, "Dimensiones de lowMenu malas"
+
+def main():
+    pygame.init()
+    global window, dispSurf, font, font2, getuser, userName, TEXTRECT, option, level, animation
+
+    #NEW = INGAME #PARA TESTEO
+    #LOAD = INGAME #PARA TESTEO
+
+    animation = 0
+    
+    window = START
+    getuser = False
+    userName = ""
+    option = None
+    dispSurf = pygame.display.set_mode((Wth, Hht))
+    font = pygame.font.Font("freesansbold.ttf", 14)
+    font2 = pygame.font.Font("freesansbold.ttf", 27)
+    pygame.display.set_caption("Solitaire Chess")
+    #level = 2 #Entrenamiento
+    while True:
+        #background
+        dispSurf.fill(TAN)
+        
+        if window == MAIN:
+            genMain()
+
+        elif window == OPTION:
+            genOption()
+
+        elif window == NEW:
+            genNew()
+            
+        elif window == LOAD:
+            genLoad()
+            
+        elif window == INGAME:
+            genGame(level)
+            
+        elif window == START:
+            genStart()
+            getUser(None)
+        # Events    
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+
+            # KEYDOWN
+            elif event.type == KEYDOWN:
+                #START MENU
+                if (window == START):
+                    getUser(event)
+
+                #MAIN MENU
+                elif (window == MAIN):
+                    if event.key == K_1:
+                        window = OPTION
+                    elif event.key == K_2:
+                        window = LOAD
+                    elif event.key == K_3:
+                        pygame.quit()
+                        sys.exit()
+
+                # OPTION MENU
+                elif (window == OPTION):
+                    if event.key == K_1:
+                        option = "random"
+                        window = NEW
+                        
+                    elif event.key == K_2:
+                        option = "user"
+                        window = NEW
+
+                # NEW GAME MENU
+                elif (window == NEW):
+                    if event.key == K_1:
+                        level = 1
+                        window = INGAME
+                    elif event.key == K_2:
+                        level = 2
+                        window = INGAME
+                    elif event.key == K_3:
+                        level = 3
+                        window = INGAME
+                    elif event.key == K_4:
+                        level = 4
+                        window = INGAME
+
+                        
+        pygame.display.update()
+        fpsClock.tick(FPS)
+        animation = (animation+1)%200
+
+def getAnim():
+    global animation, animations
+    # set animations (preprocessing)
+
+    animations = []
+    animations.append([])
+    animations.append([])
+    
+    #animation I
+    img = pygame.image.load("wpawn45.png")
+    animations[0].append(img)
+    
+    img = pygame.image.load("brook45.png")
+    animations[0].append(img)
+
+    img = pygame.image.load("wqueen45.png")
+    animations[0].append(img)
+    
+    img = pygame.image.load("bknight45.png")
+    animations[0].append(img)
+
+    img = pygame.image.load("wbishop45.png")
+    animations[0].append(img)
+
+    img = pygame.image.load("bking45.png")
+    animations[0].append(img)
+
+    #animation II
+    
+    img = pygame.image.load("bpawn45.png")
+    animations[1].append(img)
+    
+    img = pygame.image.load("wrook45.png")
+    animations[1].append(img)
+
+    img = pygame.image.load("bqueen45.png")
+    animations[1].append(img)
+    
+    img = pygame.image.load("wknight45.png")
+    animations[1].append(img)
+
+    img = pygame.image.load("bbishop45.png")
+    animations[1].append(img)
+
+    img = pygame.image.load("wking45.png")
+    animations[1].append(img)
+
+
+def genAnim():
+    global animation, animations
+    if animation < 100:
+        k = 0
+    else:
+        k = 1
+    x = 90
+    y = 300
+    for i in range(6):
+        img = animations[k][i]
+        imgRect = img.get_rect()
+        imgRect.center = (x,y)
+        dispSurf.blit(img, imgRect)
+        if i == 0:
+            y -= 150
+        elif i == 1:
+            x = Wth/2
+            y = 50
+        elif i == 2:
+            x = Wth - 90
+            y = 150
+        elif i == 3:
+            y = 300
+        else:
+            x = Wth/2
+            y = 390
+            
+        
+      
+def genStart():
+    global TEXTRECT, animation
+
+    #Animation
+    genAnim()
+    
+    #LOGO
+    logox = Wth/2
+    logoy = Hht/2 - 100 
+    logo = pygame.image.load('logo.png')
+    logoRect = logo.get_rect()
+    logoRect.center = (logox, logoy)
+    dispSurf.blit(logo, logoRect)
+
+    #TITLE
+    ffont = pygame.font.Font("freesansbold.ttf", 50)
+    textSurf = ffont.render("Solitaire Chess", True, WHITE)
+    textRect = textSurf.get_rect()
+    textRect.center = (logox, logoy)
+    dispSurf.blit(textSurf, textRect)
+
+    #Fill name
+    ffont = pygame.font.Font("freesansbold.ttf", 20)
+    textSurf = ffont.render("Ingrese nombre para iniciar sesion", True, WHITE)
+    textRect = textSurf.get_rect()
+    textRect.center = (logox, logoy + 230)
+    dispSurf.blit(textSurf, textRect)
+
+    #TextBox
+    tBoxRect = textRect
+    tBoxRect.centery += 30
+    tBoxRect.width += 10 
+    tBoxRect.height += 10
+    pygame.draw.rect(dispSurf, BLACK, tBoxRect)
+    tBoxRect.centery += 3
+    tBoxRect.width -=5
+    tBoxRect.height -=5
+    tBoxRect.left += 2
+    TEXTRECT = tBoxRect #Para que la variable global TEXTRECT mantenga las dimensiones y asi usarlas en otra funcion
+    pygame.draw.rect(dispSurf, WHITE, tBoxRect)
+
+def getUser(event):
+    global TEXRECT, userName, window
+    try:
+        if event != None and len(userName) > 0 and event.key == K_RETURN:
+            window = MAIN
+            return
+        elif (event != None and event.key == K_BACKSPACE and len(userName) > 0):
+            userName = userName[:-1]
+        elif event != None and event.key != K_RETURN and event.key != K_BACKSPACE:
+            userName += chr(event.key)
+            if len(userName) == 0:
+                return
+    except:
+        return
+    ffont = pygame.font.Font("freesansbold.ttf", 16)
+    textSurf = ffont.render(userName, True, BLACK)
+    textRect = textSurf.get_rect()
+    textRect.center = TEXTRECT.center
+    dispSurf.blit(textSurf, textRect)
+
+def genMain():
+    boundUD = 200
+    pygame.draw.rect(dispSurf, VEN, (0, boundUD, Wth, Hht - 2*boundUD))
+    x = 20
+    y = boundUD + 20
+    #gen boxes
+    for i in range(3):
+        pygame.draw.rect(dispSurf, WHITE, (x, y, 160, 210))
+
+        if i == 0:
+            genTitle2("1. Nueva", x+80, Hht/2 - 30)
+            genTitle2("Partida", x+80, Hht/2)
+            genImg("wking45.png", x+80, Hht/2 + 35)
+            
+        elif i == 1:
+            genTitle2("2. Cargar", x+80, Hht/2 - 30)
+            genTitle2("Partida", x+80, Hht/2)
+            genImg("bqueen45.png", x+80, Hht/2 + 35)
+        else:
+            genTitle2("3. Salir", x+80, Hht/2 - 15)
+            genImg("wunicorn45.png", x+80, Hht/2 + 35)
+            
+        x += 200
+
+
+def genImg(image, x, y):
+    img = pygame.image.load(image)
+    imgRect = img.get_rect()
+    imgRect.centerx = x
+    imgRect.top = y
+    dispSurf.blit(img, imgRect)
+
+def genOption():
+    boundUD = 200
+    pygame.draw.rect(dispSurf, VEN, (0, boundUD, Wth, Hht - 2*boundUD))
+    x = 40
+    y = boundUD + 20
+    #gen boxes
+    #ffont = pygame.font.Font("freesansbold.ttf", 30)
+    for i in range(2):
+        pygame.draw.rect(dispSurf, WHITE, (x, y, 220, 210))
+
+        if i == 0:
+            genTitle3("1. Generar tablero", x+110, Hht/2 - 30)
+            genTitle3("aleatorio", x+110, Hht/2)
+            genImg("wking45.png", x+110, Hht/2 + 35)
+            
+        elif i == 1:
+            genTitle3("2. Cargar tablero", x+110, Hht/2 - 30)
+            genTitle3("desde teclado", x+110, Hht/2)
+            genImg("bqueen45.png", x+110, Hht/2 + 35)
+            
+        x += 300
+
+
+def genNew():
+    boundUD = 150
+    pygame.draw.rect(dispSurf, VEN, (0, boundUD, Wth, Hht - 2*boundUD))
+    
+    x = 20
+    y = boundUD + 20
+    #gen boxes
+    for i in range(2):
+        pygame.draw.rect(dispSurf, WHITE, (x, y, 260, 135))
+        pygame.draw.rect(dispSurf, WHITE, (x, y + 175, 260, 135))
+        
+        if i == 0:
+            genTitle2("1. Entrenamiento", x+130, y + 135/2 - 13)
+            genTitle2("3. Dificil", x+130, y + 175 + 135/2 - 13)
+            
+        elif i == 1:
+            genTitle2("2. Facil", x+130, y + 135/2 - 13)
+            genTitle2("4. Muy dificil", x+130, y + 175 + 135/2 - 13)
+        
+        x += 300
+
+def genLoad():
+    global window
+    textSurf = font2.render("Oops, " + window + " aun no esta disponible", True, RED)
+    textRect = textSurf.get_rect()
+    textRect.center = (Wth/2, Hht/2)
+    dispSurf.blit(textSurf, textRect)
+        
+
+def genGame(level):
+    getBoard()
+    pygame.draw.rect(dispSurf, VEN, (0, 440, 600, 150))
+    corner=20
+    for i in range(4):
+	    pygame.draw.rect(dispSurf, WHITE, (corner, 460, 110, 110))
+	    corner+=150
+    
+    font2 = pygame.font.Font("freesansbold.ttf", 18)
+
+	# 1. JUGAR
+    #JUGAR
+    genTitle("1. JUGAR",75,470)
+    genIcon('play.png',75,525)
+
+    # 2. PAUSAR
+    #PAUSAR
+    genTitle("2. PAUSAR",75+150,470)
+    genIcon('pause.png',225,528)
+
+    # 3. DESHACER
+    #DESHACER
+    genIcon('deshacer.jpg',375,525)
+    genTitle("3. DESHACER",375,470)
+
+    # 4. TERMINAR
+    #TERMINAR
+    genTitle("4. TERMINAR",75+450,470)
+    genIcon('end.png',525,529)
+
+    #Left Menu
+    boundUD = 70
+    boundLR = 20
+    y = boundUD
+    for i in range(3):
+        pygame.draw.rect(dispSurf, VEN, (boundLR, y, 120, 100))
+        pygame.draw.rect(dispSurf, WHITE, (boundLR + 10, y+10, 100, 80))
+        if i==0:
+            genTitle("PARTIDA DE",80,y+15)
+        if i==1:
+            genTitle("NIVEL",80,y+15)
+        if i==2:
+            genTitle("TIEMPO",80,y+15)
+        y += 120
+
+        
+    printName(80, 125)
+        
+    if level == 1:
+        genTrain()
+    elif level == 2:
+        genEasy()
+    elif level == 3:
+        genHard()
+    else:
+        genVHard()
+
+def genIcon(pic,x,y):
+    icon=pygame.image.load(pic)
+    r=icon.get_rect()
+    r.center=(x,y)
+    dispSurf.blit(icon,r)
+
+def genTitle(title,x,y):
+    textSurf = font.render(title, True, BLACK, WHITE)
+    textRect = textSurf.get_rect()
+    textRect.centerx = x
+    textRect.top = y
+    dispSurf.blit(textSurf, textRect)
+
+def genTitle2(title,x,y):
+    textSurf = font2.render(title, True, BLACK, WHITE)
+    textRect = textSurf.get_rect()
+    textRect.centerx = x
+    textRect.top = y
+    dispSurf.blit(textSurf, textRect)
+
+def genTitle3(title, x, y):
+    font3 = pygame.font.Font("freesansbold.ttf", 23)
+    textSurf = font3.render(title, True, BLACK, WHITE)
+    textRect = textSurf.get_rect()
+    textRect.centerx = x
+    textRect.top = y
+    dispSurf.blit(textSurf, textRect)
+
+def genTime(timer,x,y):
+    textSurf = font2.render(timer, True, RED, WHITE)
+    textRect = textSurf.get_rect()
+    textRect.centerx = x
+    textRect.top = y
+    dispSurf.blit(textSurf, textRect)
+
+
+def genTrain():
+    tumblr=(50,70,105)
+    pygame.draw.rect(dispSurf, tumblr, (20, 10, 120, 50))
+    pygame.draw.rect(dispSurf, WHITE, (30, 20, 100, 30))
+    textSurf = font.render("0. SOLUCION", True, BLACK, WHITE)
+    textRect = textSurf.get_rect()
+    textRect.topleft = (35, 25)
+    dispSurf.blit(textSurf, textRect)
+    genIcon('inf.jpg',80,365)
+
+def printName(x,y):
+    ffont = pygame.font.Font("freesansbold.ttf", 18)
+    name = userName
+    if len(userName) >= 8:
+        name = userName[0:6] + "..." 
+    textSurf = ffont.render(name, True, BLACK, WHITE)
+    textRect = textSurf.get_rect()
+    textRect.center = (x,y)
+    dispSurf.blit(textSurf, textRect)
+    
+def genEasy():
+    genTitle2("FACIL",80,230)
+    genTime("03:00",80,350)
+
+def genHard():
+    genTitle2("DIFICIL",80,230)
+    genTime("01:30",80,350)
+    genIcon('undone.png',375,525)
+
+def genVHard():
+    global window
+    textSurf = font2.render("Oops, esta dificultad aun no esta disponible", True, RED)
+    textRect = textSurf.get_rect()
+    textRect.center = (Wth/2, Hht/2)
+    dispSurf.blit(textSurf, textRect)
+    
+def getBoard():
+    x = board[0]
+    y = board[1]
+    for i in range(4):
+        textSurf = font.render(str(4-i), True, VEN, TAN)
+        textRect = textSurf.get_rect()
+        textRect.topleft = (165, y+45)
+        dispSurf.blit(textSurf, textRect)
+        for j in range(4):
+            if i%2 == 0:
+                if j%2 == 0:
+                    pygame.draw.rect(dispSurf, BROWN, (x,y, boxSize, boxSize))
+                else:
+                    pygame.draw.rect(dispSurf, CHIFFON, (x,y, boxSize, boxSize))
+            else:
+                if j%2 == 0:
+                    pygame.draw.rect(dispSurf, CHIFFON, (x,y, boxSize, boxSize))
+                else:
+                    pygame.draw.rect(dispSurf, BROWN, (x,y, boxSize, boxSize))
+            x += boxSize
+        x = board[0]
+        y += boxSize
+
+    letras=['a','b','c','d']
+
+    x=180
+
+    for i in range(4):
+        textSurf = font.render(letras[i], True, VEN, TAN)
+        textRect = textSurf.get_rect()
+        textRect.topleft = (x+45, 420)
+        dispSurf.blit(textSurf, textRect)
+        x+=100
+        
+getAnim()                    
+main()

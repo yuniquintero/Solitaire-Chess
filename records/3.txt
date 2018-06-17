@@ -1,0 +1,6 @@
+Gus 5 
+Vals 2 
+cef 2 
+Joc 1 
+david 1 
+gus 1 
